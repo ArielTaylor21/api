@@ -1,23 +1,86 @@
-<? php
-echo "<a target='_blank' href='https://github.com/ArielTaylor21/api.git'>Ariel's GitHub Repo</a> <br>";
+<?php 
+/*
+	filename 	: as08.php
+	author   	: Ariel Taylor
+	course   	: cis355 (winter2020)
+	description	: demonstrate JSON API functions
+				  return number of new covid19 cases
+	input    	: https://api.covid19api.com/summary
+	functions   : main()
+	                curl_get_contents()
+*/
 
 main();
 
+#-----------------------------------------------------------------------------
+# FUNCTIONS
+#-----------------------------------------------------------------------------
 function main () {
 	
 	$apiCall = 'https://api.covid19api.com/summary';
+
+	//gather into an array all countries’ deaths data
 	$json_string = curl_get_contents($apiCall);
 	$obj = json_decode($json_string);
+	
+	$death_arr = Array() ;
 
-    $arr1 = Array();
-    $arr2 = Array();
-     foreach($obj->Countries as $i){
-         array_push($arr1, $i->Country);
-         array_push($arr2, $i->TotalDeaths);
-     }
-     array_multisort($arr2, SORT_DESC, $arr1);
-	 print_r($arr1);
+	foreach($obj->Countries as $i){
+		$death_arr[$i->Country] = $i->TotalDeaths;
+	}
+
+	//sort array in Desecending order 
+	arsort($death_arr);
+
+	// echo html head section
+	echo '<html>';
+	echo '<head>';
+	echo '<title>Assignment 08</title>';
+	echo '<style>';
+	echo "table, th, td {
+	         border: 1px solid black;
+			border-collapse: collapse; 
+			background-color: tomato;
+	  	}";
+	echo '</style>';
+	echo '</head>';
+	
+	// open html body section
+	echo '<body onload="loadDoc()">';
+
+	//clickable link to the code you just pushed to GitHub.
+	echo "<a target='_blank' href='https://github.com/ArielTaylor21/api.git'>Ariel's GitHub Repo</a> <br>";
+	
+	$death_arr = array_slice($death_arr,0,10); //  top 10 highest number of deaths.
+	//print_r($death_arr);
+	$JSONString=json_encode($death_arr);
+	$JSONObject = json_decode($JSONString);
+	echo '<b>Filtered JSON Object From $death_arr</b><br>';
+	echo var_dump($JSONObject);
+	echo '<br><br>';
+	echo "<div><b>Top 10 Countries with COVID Deaths</b>";
+	echo "<table>";
+        echo "<tr>";
+		  	echo "<th>Ranking</th>";
+            echo "<th>Country</th>";
+            echo "<th>Total Death Cases</th>";
+		echo "</tr>";
+		$i=1;
+		foreach ($death_arr as $country => $cases) {
+			echo "<tr>";
+			echo "<td>{$i}</td>";
+			echo "<td>{$country}</td>";
+			echo "<td>{$cases}</td>";
+			echo "</tr>";
+			$i++;
+		 }
+	echo "</table>";
+	echo '</div>';
+	echo '</body>';
+	echo '</html>';
 }
+
+
 #-----------------------------------------------------------------------------
 // read data from a URL into a string
 function curl_get_contents($url) {
@@ -30,3 +93,4 @@ function curl_get_contents($url) {
     curl_close($ch);
     return $data;
 }
+?>
